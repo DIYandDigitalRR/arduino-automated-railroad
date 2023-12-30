@@ -24,6 +24,60 @@ const int SENSOR_THRESHOLD = 500;
 int trainSpeed;
 int trainDirection;
 
+bool isAtStation(uint8_t pin)
+{
+  return analogRead(pin) < SENSOR_THRESHOLD;
+}
+
+/**
+ * Get desired speed from the potentiometer, scale it, and set the
+ * motor speed appropriately.
+ * `map` adjustments to address disparity between analog read (10 bit)
+ * and analog write (8 bit)
+ */
+void updateSpeed()
+{
+  int potValue = analogRead(POTENTIOMETER);
+  trainSpeed = map(potValue, 0, 1023, 0, 255);
+  analogWrite(MOTOR_SPEED, trainSpeed);
+}
+
+void stopTrain()
+{
+  digitalWrite(MOTOR_FORWARD, OFF);
+  digitalWrite(MOTOR_REVERSE, OFF);
+}
+
+void startTrain(int direction)
+{
+  trainDirection = direction;
+  digitalWrite(MOTOR_FORWARD, direction == FORWARD ? ON : OFF);
+  digitalWrite(MOTOR_REVERSE, direction == REVERSE ? ON : OFF);
+}
+
+void stopAndGo(int direction)
+{
+  stopTrain();
+  delay(5000);
+  startTrain(direction);
+  delay(1500); //this is odd, no?
+}
+
+void reverseDirection()
+{
+  stopAndGo(trainDirection == FORWARD ? REVERSE : FORWARD);
+}
+
+void pauseAndResume()
+{
+  stopAndGo(trainDirection);
+}
+
+void reportStatus()
+{
+  Serial.println("Speed: " + String(trainSpeed) + " " + (trainDirection == FORWARD) ? "forward" : "reverse");
+}
+
 void setup()
 {
   Serial.begin(9600);
@@ -34,56 +88,16 @@ void setup()
 
 void loop()
 {
-  int terminus1 = analogRead(TERMINUS_1);
-  int terminus2 = analogRead(TERMINUS_2);
-  int midStation1 = analogRead(MID_STATION_1);
-  int potValue = analogRead(POTENTIOMETER);
-
-  trainSpeed = map(potValue, 0, 1023, 0, 255);
-  analogWrite(MOTOR_SPEED, trainSpeed);
-  Serial.println(trainDirection);
-  Serial.println(trainSpeed);
+  updateSpeed();
+  reportStatus();
   delay(200);
 
-  if (terminus1 < SENSOR_THRESHOLD)
+  if (isAtStation(TERMINUS_1) || isAtStation(TERMINUS_2))
   {
-    digitalWrite(MOTOR_FORWARD, OFF);
-    digitalWrite(MOTOR_REVERSE, OFF);
-    trainDirection = FORWARD;
-    delay(5000);
-    digitalWrite(MOTOR_FORWARD, ON);
-    digitalWrite(MOTOR_REVERSE, OFF);
-
-    delay(1500);
+    reverseDirection();
   }
-  if (terminus2 < SENSOR_THRESHOLD)
+  else if (isAtStation(MID_STATION_1))
   {
-    digitalWrite(MOTOR_FORWARD, OFF);
-    digitalWrite(MOTOR_REVERSE, OFF);
-    trainDirection = REVERSE;
-    delay(5000);
-    digitalWrite(MOTOR_FORWARD, OFF);
-    digitalWrite(MOTOR_REVERSE, ON);
-
-    delay(1500);
-  }
-
-  if ((midStation1 < SENSOR_THRESHOLD) && (trainDirection == REVERSE))
-  {
-    digitalWrite(MOTOR_FORWARD, OFF);
-    digitalWrite(MOTOR_REVERSE, OFF);
-    delay(5000);
-    digitalWrite(MOTOR_FORWARD, OFF);
-    digitalWrite(MOTOR_REVERSE, ON);
-    delay(1500);
-  }
-  if ((midStation1 < SENSOR_THRESHOLD) && (trainDirection == FORWARD))
-  {
-    digitalWrite(MOTOR_FORWARD, OFF);
-    digitalWrite(MOTOR_REVERSE, OFF);
-    delay(5000);
-    digitalWrite(MOTOR_FORWARD, ON);
-    digitalWrite(MOTOR_REVERSE, OFF);
-    delay(1500);
+    pauseAndResume();
   }
 }
