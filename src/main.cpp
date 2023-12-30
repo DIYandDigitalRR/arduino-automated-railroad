@@ -33,6 +33,17 @@ bool isAtStation(uint8_t pin)
   return analogRead(pin) < SENSOR_THRESHOLD;
 }
 
+bool isAtTerminus() {
+  return isAtStation(TERMINUS_1) || isAtStation(TERMINUS_2);
+}
+
+/**
+ * Makes adding additional stations easier, just OR ('||') them together
+ */
+bool isAtMiddleStation() {
+  return isAtStation(MID_STATION_1);
+}
+
 /**
  * Get desired speed from the potentiometer, scale it, and set the
  * motor speed appropriately.
@@ -95,11 +106,11 @@ void loop()
   reportStatus();
   delay(200);
 
-  if (isAtStation(TERMINUS_1) || isAtStation(TERMINUS_2))
+  if (isAtTerminus())
   {
     reverseDirection();
   }
-  else if (isAtStation(MID_STATION_1))
+  else if (isAtMiddleStation())
   {
     pauseAndResume();
   }
