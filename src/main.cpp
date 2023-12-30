@@ -6,7 +6,7 @@
 const int FORWARD = 0;
 const int REVERSE = 1;
 
-// Arduinao (Output) Digital PWM Pins to Motor Driver
+// Arduino (Output) Digital PWM Pins to Motor Driver
 const int MOTOR_FORWARD = 5;
 const int MOTOR_REVERSE = 6;
 const int MOTOR_SPEED = 3;
@@ -16,7 +16,7 @@ const uint8_t TERMINUS_1 = A0;
 const uint8_t TERMINUS_2 = A1;
 const uint8_t MID_STATION_1 = A2;
 
-const uint8_t POTENTIOMETER = A2;
+const uint8_t POTENTIOMETER = A3;
 
 /** Cutoff for IR proximity filter */
 const int SENSOR_THRESHOLD = 500;
@@ -24,6 +24,10 @@ const int SENSOR_THRESHOLD = 500;
 int trainSpeed;
 int trainDirection;
 
+/**
+ * Check if the train is at a station by reading the IR proximity sensor
+ * (corresponding to `pin`) and comparing it to the threshold.
+ */
 bool isAtStation(uint8_t pin)
 {
   return analogRead(pin) < SENSOR_THRESHOLD;
@@ -58,9 +62,8 @@ void startTrain(int direction)
 void stopAndGo(int direction)
 {
   stopTrain();
-  delay(5000);
+  delay(5000); // ideally wouldn't block, but this is a simple example
   startTrain(direction);
-  delay(1500); //this is odd, no?
 }
 
 void reverseDirection()

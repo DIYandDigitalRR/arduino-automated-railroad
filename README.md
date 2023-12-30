@@ -4,11 +4,31 @@
 
 A two-terminus track with a station midway, controlled with Arduino: auto-reverse employing IR proximity sensors.
 
-This is a fork of DIY Jimmy's "Three Station Railroad Arduino Demo", however, that project is setup as ArduinoIDE and I prefer vanilla C/C++ or JavaScript with Microsoft VSCode etc. Plus, that code can be refactored for me, a n00b to Arduinios and very rusty with C++. That said, this compiles fine using [Arduino IDE 2.x](https://www.arduino.cc/en/software) (`Arduino Automated Railroad.ino` becomes `src/main.cpp`).
+Not a DCC controller.
 
-[Original GitHub Source](https://github.com/DIYandDigitalRR/arduino-automated-railroad) and his incredibly helpful [YouTube tutorial](https://youtu.be/PoOxFS2DNpI?si=a4vY9Ln4eqhzoHmL). Find him at [DIY and Digital Railroad](https://www.diyanddigitalrr.com/)
+This is a fork of DIY Jimmy's (find him at [DIY and Digital Railroad](https://www.diyanddigitalrr.com/)) "Three Station Railroad Arduino Demo", however, that project is setup as ArduinoIDE and I prefer vanilla C/C++ or JavaScript with Microsoft VSCode etc. Plus, that code can be refactored for me, a n00b to Arduinios and very rusty with C++. That said, this compiles fine using [Arduino IDE 2.x](https://www.arduino.cc/en/software) (`Arduino Automated Railroad.ino` becomes `src/main.cpp`).
+
+[Original GitHub Source](https://github.com/DIYandDigitalRR/arduino-automated-railroad) and his incredibly helpful [YouTube tutorial](https://youtu.be/PoOxFS2DNpI?si=a4vY9Ln4eqhzoHmL).
 
 ### Notes:
+
+Pseudo-code of how I want my main loop to read:
+
+```js
+void loop() {
+    updateSpeed(); // get potentiometer setting and send that to motor controller
+    reportStatus(); // echo state of the train, direction and speed
+
+    if (isAtTerminus()) {
+        // applies to any terminating station: end of the line
+        reverseDirection();
+    } else (isAtMiddleStation()) {
+        // any station "in the middle" we'll just pause momentarily before 
+        // continuing in same direction of travel
+        pauseAndResume();
+    }
+}
+```
 
 * my final build uses a ease-in stop at the middle station rather than merely cutting the power, but I wanted to leave this "pure" and of a piece with Jimmy's original example.
 * any guage/scale layout: O, HO, N -- code should be scale agnostic
